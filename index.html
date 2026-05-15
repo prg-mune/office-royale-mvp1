@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Office Royale - Player View MVP</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hud" aria-label="game status">
+        <div>
+          <p class="eyebrow">OFFICE ROYALE / PLAYER VIEW MVP</p>
+          <h1>会議室フロア崩壊</h1>
+        </div>
+        <div class="hud-actions">
+          <div class="stat-grid">
+            <div class="stat">
+              <span>生存</span>
+              <strong id="aliveCount">50</strong>
+            </div>
+            <div class="stat">
+              <span>順位</span>
+              <strong id="rank">-</strong>
+            </div>
+            <div class="stat">
+              <span>残り</span>
+              <strong id="timer">90</strong>
+            </div>
+          </div>
+          <div class="burst-meter" id="burstMeter">
+            <span id="burstLabel">BURST</span>
+            <strong id="burstValue">READY</strong>
+            <div class="burst-fill" id="burstFill"></div>
+          </div>
+          <button class="view-button active" id="viewButton" type="button">自分視点</button>
+          <button class="rules-button" id="rulesButton" type="button">ルール</button>
+        </div>
+      </section>
+
+      <section class="game-wrap" aria-label="play area">
+        <canvas id="game" width="1280" height="720"></canvas>
+        <div class="center-card" id="startPanel">
+          <p class="eyebrow">50人バトルロワイヤル</p>
+          <h2>落ちる床から最後まで生き残れ</h2>
+          <p>自分視点カメラで周囲を読みながら、Space長押しバーストで生き残れ。</p>
+          <button id="startButton" type="button">ゲーム開始</button>
+        </div>
+        <div class="center-card hidden" id="resultPanel">
+          <p class="eyebrow" id="resultEyebrow">RESULT</p>
+          <h2 id="resultTitle">結果</h2>
+          <p id="resultText"></p>
+          <div class="result-stats" id="resultStats"></div>
+          <button id="restartButton" type="button">もう一度</button>
+        </div>
+        <div class="eliminated-panel hidden" id="eliminatedPanel">
+          <p class="eyebrow">ELIMINATED</p>
+          <strong>脱落しました</strong>
+          <span id="eliminatedText">観戦モードに切り替わります。</span>
+          <button id="eliminatedCloseButton" type="button">観戦を続ける</button>
+        </div>
+        <div class="event-log" id="eventLog" aria-live="polite"></div>
+        <div class="touch-controls" aria-hidden="true">
+          <div class="stick" id="stick">
+            <div class="stick-knob" id="stickKnob"></div>
+          </div>
+          <button class="dash" id="dashButton" type="button">BURST</button>
+        </div>
+      </section>
+
+      <section class="scoreboard" aria-label="leaderboard">
+        <div class="scoreboard-head">
+          <h2>Live Ranking</h2>
+          <button id="quickRestart" type="button" title="Restart">↻</button>
+        </div>
+        <ol id="leaderboard"></ol>
+      </section>
+    </main>
+
+    <div class="modal-backdrop hidden" id="rulesModal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+      <section class="rules-modal">
+        <div class="rules-head">
+          <div>
+            <p class="eyebrow">HOW TO PLAY</p>
+            <h2 id="rulesTitle">ゲームルール</h2>
+          </div>
+          <button class="icon-button" id="rulesCloseButton" type="button" aria-label="ルールを閉じる">×</button>
+        </div>
+        <div class="rules-content">
+          <article>
+            <h3>目的</h3>
+            <p>50人の中で最後まで生き残ること。自分のキャラは白いリングで表示されます。</p>
+          </article>
+          <article>
+            <h3>脱落条件</h3>
+            <ul>
+              <li>消えた床の上に乗る</li>
+              <li>ステージの端から外へ落ちる</li>
+              <li>最後の1人になるか制限時間が終わると結果表示</li>
+            </ul>
+          </article>
+          <article>
+            <h3>危険なもの</h3>
+            <ul>
+              <li>赤く点滅する床はもうすぐ消えます</li>
+              <li>赤いバーは横/縦に動いて押し出します</li>
+              <li>黄色いバーは回転して弾き飛ばします</li>
+              <li>机や壁は通り抜けできません</li>
+            </ul>
+          </article>
+          <article>
+            <h3>操作</h3>
+            <ul>
+              <li>PC: WASD / 矢印キーで移動、Space長押しでチャージ、離すとバースト</li>
+              <li>スマホ: 左スティックで移動、右ボタン長押しでチャージ、離すとバースト</li>
+              <li>長く溜めるほど範囲と威力が上がります。使った直後は少しだけ動きが重くなります</li>
+              <li>画面上部の視点ボタンで、自分視点と神視点を切り替えできます</li>
+            </ul>
+          </article>
+          <article>
+            <h3>コツ</h3>
+            <p>端は危険なので中央寄りを意識しつつ、相手が密集した瞬間にバーストを使うと押し出しを狙えます。</p>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
