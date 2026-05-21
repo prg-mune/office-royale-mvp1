@@ -2,129 +2,166 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Office Royale - Player View MVP</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Office Royale MVPs</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101318;
+        --panel: #191f27;
+        --panel-2: #202934;
+        --text: #f7f8fb;
+        --muted: #aab2bf;
+        --line: rgba(255, 255, 255, 0.12);
+        --mint: #62d6a6;
+        --gold: #f4c95d;
+        --sky: #65b7f3;
+        --coral: #ff765f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      main {
+        width: min(1040px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(34px, 7vw, 72px);
+        line-height: 0.98;
+      }
+
+      .lead {
+        max-width: 720px;
+        margin: 18px 0 34px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.7;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        display: grid;
+        min-height: 260px;
+        padding: 20px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .card:hover,
+      .card:focus-visible {
+        border-color: var(--mint);
+        outline: none;
+      }
+
+      .badge {
+        width: fit-content;
+        height: 28px;
+        padding: 6px 9px;
+        background: var(--panel-2);
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .card h2 {
+        margin: 38px 0 10px;
+        font-size: 25px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .play {
+        align-self: end;
+        margin-top: 24px;
+        color: var(--mint);
+        font-weight: 900;
+      }
+
+      .card:nth-child(2) .play {
+        color: var(--sky);
+      }
+
+      .card:nth-child(3) .play {
+        color: var(--coral);
+      }
+
+      @media (max-width: 820px) {
+        main {
+          padding: 32px 0;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .card {
+          min-height: 210px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <main class="app-shell">
-      <section class="hud" aria-label="game status">
-        <div>
-          <p class="eyebrow">OFFICE ROYALE / PLAYER VIEW MVP</p>
-          <h1>会議室フロア崩壊</h1>
-        </div>
-        <div class="hud-actions">
-          <div class="stat-grid">
-            <div class="stat">
-              <span>生存</span>
-              <strong id="aliveCount">50</strong>
-            </div>
-            <div class="stat">
-              <span>順位</span>
-              <strong id="rank">-</strong>
-            </div>
-            <div class="stat">
-              <span>残り</span>
-              <strong id="timer">90</strong>
-            </div>
-          </div>
-          <div class="burst-meter" id="burstMeter">
-            <span id="burstLabel">BURST</span>
-            <strong id="burstValue">READY</strong>
-            <div class="burst-fill" id="burstFill"></div>
-          </div>
-          <button class="view-button active" id="viewButton" type="button">自分視点</button>
-          <button class="rules-button" id="rulesButton" type="button">ルール</button>
-        </div>
-      </section>
+    <main>
+      <p class="eyebrow">OFFICE ROYALE PROTOTYPES</p>
+      <h1>Office Royale</h1>
+      <p class="lead">社内レクリエーション向けの大人数バトルロワイヤルMVP集です。操作感は共通で、ルールと視点を変えた3種類を試せます。</p>
 
-      <section class="game-wrap" aria-label="play area">
-        <canvas id="game" width="1280" height="720"></canvas>
-        <div class="center-card" id="startPanel">
-          <p class="eyebrow">50人バトルロワイヤル</p>
-          <h2>落ちる床から最後まで生き残れ</h2>
-          <p>自分視点カメラで周囲を読みながら、Space長押しバーストで生き残れ。</p>
-          <button id="startButton" type="button">ゲーム開始</button>
-        </div>
-        <div class="center-card hidden" id="resultPanel">
-          <p class="eyebrow" id="resultEyebrow">RESULT</p>
-          <h2 id="resultTitle">結果</h2>
-          <p id="resultText"></p>
-          <div class="result-stats" id="resultStats"></div>
-          <button id="restartButton" type="button">もう一度</button>
-        </div>
-        <div class="eliminated-panel hidden" id="eliminatedPanel">
-          <p class="eyebrow">ELIMINATED</p>
-          <strong>脱落しました</strong>
-          <span id="eliminatedText">観戦モードに切り替わります。</span>
-          <button id="eliminatedCloseButton" type="button">観戦を続ける</button>
-        </div>
-        <div class="event-log" id="eventLog" aria-live="polite"></div>
-        <div class="touch-controls" aria-hidden="true">
-          <div class="stick" id="stick">
-            <div class="stick-knob" id="stickKnob"></div>
-          </div>
-          <button class="dash" id="dashButton" type="button">BURST</button>
-        </div>
-      </section>
+      <section class="grid" aria-label="prototype list">
+        <a class="card" href="variants/player-view/">
+          <span class="badge">Original</span>
+          <h2>Player View</h2>
+          <p>自分視点で床崩壊サバイバル。長押しバーストと障害物を使って最後まで生き残る版。</p>
+          <span class="play">Play</span>
+        </a>
 
-      <section class="scoreboard" aria-label="leaderboard">
-        <div class="scoreboard-head">
-          <h2>Live Ranking</h2>
-          <button id="quickRestart" type="button" title="Restart">↻</button>
-        </div>
-        <ol id="leaderboard"></ol>
+        <a class="card" href="variants/god-view/">
+          <span class="badge">Host View</span>
+          <h2>God View</h2>
+          <p>全体俯瞰で見やすい床崩壊サバイバル。会場スクリーンや観戦デモ向け。</p>
+          <span class="play">Play</span>
+        </a>
+
+        <a class="card" href="variants/elevator-rush/">
+          <span class="badge">Race</span>
+          <h2>Elevator Rush</h2>
+          <p>横スクロールで右端のエレベーターを目指すレース型バトルロワイヤル。</p>
+          <span class="play">Play</span>
+        </a>
       </section>
     </main>
-
-    <div class="modal-backdrop hidden" id="rulesModal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
-      <section class="rules-modal">
-        <div class="rules-head">
-          <div>
-            <p class="eyebrow">HOW TO PLAY</p>
-            <h2 id="rulesTitle">ゲームルール</h2>
-          </div>
-          <button class="icon-button" id="rulesCloseButton" type="button" aria-label="ルールを閉じる">×</button>
-        </div>
-        <div class="rules-content">
-          <article>
-            <h3>目的</h3>
-            <p>50人の中で最後まで生き残ること。自分のキャラは白いリングで表示されます。</p>
-          </article>
-          <article>
-            <h3>脱落条件</h3>
-            <ul>
-              <li>消えた床の上に乗る</li>
-              <li>ステージの端から外へ落ちる</li>
-              <li>最後の1人になるか制限時間が終わると結果表示</li>
-            </ul>
-          </article>
-          <article>
-            <h3>危険なもの</h3>
-            <ul>
-              <li>赤く点滅する床はもうすぐ消えます</li>
-              <li>赤いバーは横/縦に動いて押し出します</li>
-              <li>黄色いバーは回転して弾き飛ばします</li>
-              <li>机や壁は通り抜けできません</li>
-            </ul>
-          </article>
-          <article>
-            <h3>操作</h3>
-            <ul>
-              <li>PC: WASD / 矢印キーで移動、Space長押しでチャージ、離すとバースト</li>
-              <li>スマホ: 左スティックで移動、右ボタン長押しでチャージ、離すとバースト</li>
-              <li>長く溜めるほど範囲と威力が上がります。使った直後は少しだけ動きが重くなります</li>
-              <li>画面上部の視点ボタンで、自分視点と神視点を切り替えできます</li>
-            </ul>
-          </article>
-          <article>
-            <h3>コツ</h3>
-            <p>端は危険なので中央寄りを意識しつつ、相手が密集した瞬間にバーストを使うと押し出しを狙えます。</p>
-          </article>
-        </div>
-      </section>
-    </div>
-
-    <script src="game.js"></script>
   </body>
 </html>
