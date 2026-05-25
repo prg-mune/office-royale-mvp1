@@ -5,7 +5,10 @@ const aliveCountEl = document.getElementById("aliveCount");
 const rankTextEl = document.getElementById("rankText");
 const roundTextEl = document.getElementById("roundText");
 const tickTextEl = document.getElementById("tickText");
+const phaseTextEl = document.getElementById("phaseText");
+const intentTextEl = document.getElementById("intentText");
 const statusTextEl = document.getElementById("statusText");
+const logListEl = document.getElementById("logList");
 const powerSlider = document.getElementById("powerSlider");
 const powerTextEl = document.getElementById("powerText");
 const resultBanner = document.getElementById("resultBanner");
@@ -27,6 +30,20 @@ const dirs = {
   right: { x: 1, y: 0 },
 };
 
+const actionLabels = {
+  push: "Push",
+  brace: "Brace",
+  heavy: "Heavy",
+  dodge: "Dodge",
+};
+
+const dirLabels = {
+  up: "上",
+  down: "下",
+  left: "左",
+  right: "右",
+};
+
 const state = {
   players: [],
   round: 1,
@@ -39,6 +56,10 @@ const state = {
   playerRank: null,
   winnerId: null,
   shake: 0,
+  flash: 0,
+  phasePulse: 0,
+  effects: [],
+  logs: [],
   safe: { x: 70, y: 58, w: W - 140, h: H - 116 },
 };
 
@@ -106,12 +127,17 @@ function resetGame() {
   state.playerRank = null;
   state.winnerId = null;
   state.shake = 0;
+  state.flash = 0;
+  state.phasePulse = 0;
+  state.effects = [];
+  state.logs = [];
   state.safe = { x: 70, y: 58, w: W - 140, h: H - 116 };
   resultBanner.classList.add("hidden");
 
   for (let i = 0; i < PLAYER_COUNT; i += 1) {
     state.players.push(makePlayer(i + 1, i === 0));
   }
+  addLog("Round 1: 行動を予約して、ゲージが0になる瞬間を待ちます。");
   updateActionText();
 }
 
@@ -178,9 +204,31 @@ function shrinkSafeArea() {
   };
 }
 
+function addEffect(type, x, y, dir, power) {
+  state.effects.push({
+    type,
+    x,
+    y,
+    dir,
+    power,
+    age: 0,
+    life: type === "shock" ? 560 : 420,
+  });
+}
+
 function applyActionForces() {
   currentHumanIntent();
   state.players.forEach(chooseNpcAction);
+
+  const h = human();
+  const report = {
+    action: h.action,
+    dir: h.dir,
+    power: h.power,
+    affected: 0,
+    blocked: h.stun > 0,
+    eliminated: 0,
+  };
 
   const alive = alivePlayers();
   for (const p of alive) {
@@ -223,16 +271,25 @@ function applyActionForces() {
       b.vx += nx * impulse * bBrace;
       b.vy += ny * impulse * bBrace;
 
+      if (a.isHuman || b.isHuman) report.affected += 1;
+
       if (a.action === "heavy") {
         b.vx += dirs[a.dir].x * 4.6 * a.power;
         b.vy += dirs[a.dir].y * 4.6 * a.power;
+        if (a.isHuman) report.affected += 1;
       }
       if (b.action === "heavy") {
         a.vx += dirs[b.dir].x * 4.6 * b.power;
         a.vy += dirs[b.dir].y * 4.6 * b.power;
+        if (b.isHuman) report.affected += 1;
       }
     }
   }
+
+  addEffect(h.action === "heavy" ? "shock" : "pulse", h.x, h.y, h.dir, h.power);
+  state.flash = 1;
+  state.phasePulse = 1;
+  return report;
 }
 
 function resolveObstacles(p) {
@@ -275,14 +332,16 @@ function eliminateOutsiders() {
       }
     }
   }
+  return eliminatedThisCheck;
 }
 
 function tickTurn() {
   if (!state.running) return;
   state.round += 1;
   shrinkSafeArea();
-  applyActionForces();
-  eliminateOutsiders();
+  const report = applyActionForces();
+  report.eliminated += eliminateOutsiders();
+  addActionLog(report);
   updateActionText();
 
   const alive = alivePlayers();
@@ -297,6 +356,22 @@ function tickTurn() {
       showBanner(`決着！優勝は Player ${state.winnerId}。あなたは ${state.playerRank} 位でした。`);
     }
   }
+}
+
+function addActionLog(report) {
+  const power = Math.round(report.power * 100);
+  let result = `${dirLabels[report.dir]}へ${actionLabels[report.action]} ${power}%`;
+  if (report.blocked) result += " / 硬直で弱め";
+  if (report.affected > 0) result += ` / 近くの${report.affected}人に影響`;
+  else result += " / 周囲への影響は小さめ";
+  if (report.eliminated > 0) result += ` / ${report.eliminated}人脱落`;
+  addLog(`Round ${state.round}: ${result}`);
+}
+
+function addLog(text) {
+  state.logs.unshift(text);
+  state.logs = state.logs.slice(0, 6);
+  logListEl.innerHTML = state.logs.map((log) => `<li>${log}</li>`).join("");
 }
 
 function showBanner(text) {
@@ -314,6 +389,11 @@ function updatePhysics(dt) {
     resolveObstacles(p);
   }
   eliminateOutsiders();
+  state.effects = state.effects
+    .map((effect) => ({ ...effect, age: effect.age + dt * 1000 }))
+    .filter((effect) => effect.age < effect.life);
+  state.flash = Math.max(0, state.flash - dt * 3.5);
+  state.phasePulse = Math.max(0, state.phasePulse - dt * 3.8);
 }
 
 function drawRoom() {
@@ -369,6 +449,25 @@ function roundRect(x, y, w, h, r, fill, stroke) {
   if (stroke) ctx.stroke();
 }
 
+function drawEffects() {
+  for (const effect of state.effects) {
+    const t = effect.age / effect.life;
+    const d = dirs[effect.dir] || dirs.right;
+    ctx.save();
+    ctx.globalAlpha = 1 - t;
+    ctx.strokeStyle = effect.type === "shock" ? "#ff7b64" : "#5ed7a5";
+    ctx.lineWidth = effect.type === "shock" ? 6 : 4;
+    ctx.beginPath();
+    ctx.arc(effect.x, effect.y, 24 + t * 82 * effect.power, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(effect.x, effect.y);
+    ctx.lineTo(effect.x + d.x * (60 + t * 90), effect.y + d.y * (60 + t * 90));
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
 function drawPlayers() {
   const sorted = [...state.players].sort((a, b) => Number(a.isHuman) - Number(b.isHuman));
   for (const p of sorted) {
@@ -410,6 +509,15 @@ function drawTurnPulse() {
   ctx.restore();
 }
 
+function drawFlash() {
+  if (state.flash <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = state.flash * 0.22;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
 function draw() {
   ctx.save();
   if (state.shake > 0) {
@@ -418,16 +526,27 @@ function draw() {
     if (state.shake < 0.5) state.shake = 0;
   }
   drawRoom();
+  drawEffects();
   drawPlayers();
   drawTurnPulse();
+  drawFlash();
   ctx.restore();
 }
 
 function updateHud() {
   const alive = alivePlayers().length;
+  const remain = Math.max(0, TICK_MS - state.tickElapsed);
   aliveCountEl.textContent = String(alive);
   roundTextEl.textContent = String(state.round);
-  tickTextEl.textContent = state.running ? `${((TICK_MS - state.tickElapsed) / 1000).toFixed(1)}s` : "done";
+  tickTextEl.textContent = state.running ? `${(remain / 1000).toFixed(1)}s` : "done";
+
+  if (remain < 180 && state.running) {
+    phaseTextEl.textContent = "PUSH!";
+    phaseTextEl.classList.add("hot");
+  } else {
+    phaseTextEl.textContent = remain < 520 ? "SET" : "WAIT";
+    phaseTextEl.classList.toggle("hot", state.phasePulse > 0);
+  }
 
   const h = human();
   if (h.alive) {
@@ -438,22 +557,11 @@ function updateHud() {
 }
 
 function updateActionText() {
-  const actionLabels = {
-    push: "押す",
-    brace: "踏ん張る",
-    heavy: "強押し",
-    dodge: "かわす",
-  };
-  const dirLabels = {
-    up: "上",
-    down: "下",
-    left: "左",
-    right: "右",
-  };
   const action = actionLabels[state.selectedAction];
   const dir = dirLabels[state.selectedDir];
   const power = Math.round(state.power * 100);
-  statusTextEl.textContent = `${dir}へ${action}。圧力 ${power}% で、次のtickに全員の入力とまとめて処理されます。`;
+  intentTextEl.textContent = `${dir}へ${action} ${power}%`;
+  statusTextEl.textContent = `次のtickで「${dir}へ${action}」を発動します。PUSH! の瞬間に衝撃波とログで結果が出ます。`;
 }
 
 let lastTime = performance.now();

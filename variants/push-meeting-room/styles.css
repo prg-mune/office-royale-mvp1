@@ -165,12 +165,55 @@ canvas {
   font-weight: 900;
 }
 
+.phase-text {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  min-width: 150px;
+  padding: 12px 18px;
+  transform: translate(-50%, -50%) scale(0.92);
+  background: rgba(16, 19, 24, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 40px;
+  font-weight: 1000;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  opacity: 0.68;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+.phase-text.hot {
+  transform: translate(-50%, -50%) scale(1.08);
+  background: rgba(255, 123, 100, 0.9);
+  color: #160806;
+  opacity: 1;
+}
+
 .hidden {
   display: none;
 }
 
 .panel {
   padding: 14px;
+}
+
+.callout {
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.callout strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--mint);
+  font-size: 18px;
+  line-height: 1.25;
 }
 
 .panel-section + .panel-section {
@@ -255,6 +298,31 @@ canvas {
   color: var(--muted);
   line-height: 1.65;
   min-height: 78px;
+}
+
+.log-list {
+  display: grid;
+  gap: 8px;
+  max-height: 176px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.log-list li {
+  padding: 9px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.log-list li:first-child {
+  color: var(--text);
+  border-color: rgba(94, 215, 165, 0.45);
 }
 
 .rules-dialog {

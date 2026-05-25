@@ -42,10 +42,16 @@
       <section class="game-layout">
         <div class="stage-wrap">
           <canvas id="gameCanvas" width="960" height="620" aria-label="meeting room arena"></canvas>
+          <div id="phaseText" class="phase-text">SET</div>
           <div id="resultBanner" class="result-banner hidden"></div>
         </div>
 
         <aside class="panel">
+          <div class="panel-section callout">
+            <span class="label">Queued Action</span>
+            <strong id="intentText">Right Push 70%</strong>
+          </div>
+
           <div class="panel-section">
             <h2>Action</h2>
             <div class="segmented" role="group" aria-label="action">
@@ -59,10 +65,10 @@
           <div class="panel-section">
             <h2>Direction</h2>
             <div class="dpad" aria-label="direction pad">
-              <button class="dir-button" data-dir="up" type="button">↑</button>
-              <button class="dir-button" data-dir="left" type="button">←</button>
-              <button class="dir-button active" data-dir="right" type="button">→</button>
-              <button class="dir-button" data-dir="down" type="button">↓</button>
+              <button class="dir-button" data-dir="up" type="button">U</button>
+              <button class="dir-button" data-dir="left" type="button">L</button>
+              <button class="dir-button active" data-dir="right" type="button">R</button>
+              <button class="dir-button" data-dir="down" type="button">D</button>
             </div>
           </div>
 
@@ -78,7 +84,12 @@
 
           <div class="panel-section">
             <h2>Status</h2>
-            <p id="statusText" class="status-text">右へ押し込み中。1秒ごとに全員の入力が集計されます。</p>
+            <p id="statusText" class="status-text">次のtickで右へPushします。ゲージが0になる瞬間に全員の行動が発動します。</p>
+          </div>
+
+          <div class="panel-section">
+            <h2>Result Log</h2>
+            <ol id="logList" class="log-list" aria-label="action result log"></ol>
           </div>
         </aside>
       </section>
@@ -87,16 +98,16 @@
     <dialog id="rulesDialog" class="rules-dialog">
       <div class="rules-head">
         <h2>ゲームルール</h2>
-        <button id="closeRulesButton" class="icon-button" type="button" aria-label="close">×</button>
+        <button id="closeRulesButton" class="icon-button" type="button" aria-label="close">x</button>
       </div>
       <div class="rules-body">
         <p>50人が会議室で押し合い、最後まで安全エリア内に残った人が勝ちです。</p>
         <ul>
           <li>1秒ごとに全員の行動がまとめて処理されます。</li>
+          <li>画面中央の合図が「PUSH!」になった瞬間に、予約した行動が発動します。</li>
           <li>Pushは指定方向に押します。Heavyは強く押せますが次の硬直が重めです。</li>
           <li>Braceは押されにくくなります。Dodgeは横にずれて混雑を避けます。</li>
           <li>赤い安全エリアから出ると脱落します。会議室は徐々に狭くなります。</li>
-          <li>机やホワイトボードにぶつかると押し返されます。</li>
         </ul>
       </div>
     </dialog>
