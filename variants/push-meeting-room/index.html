@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Office Royale - Push Meeting Room MVP</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">OFFICE ROYALE / PUSH MEETING ROOM MVP</p>
+          <h1>押すな押すな会議室</h1>
+        </div>
+        <div class="top-actions">
+          <a class="link-button" href="../../">Variants</a>
+          <button id="rulesButton" class="link-button" type="button">Rules</button>
+          <button id="restartButton" class="primary-button" type="button">Restart</button>
+        </div>
+      </header>
+
+      <section class="hud" aria-label="game status">
+        <div>
+          <span class="label">Alive</span>
+          <strong id="aliveCount">50</strong>
+        </div>
+        <div>
+          <span class="label">Rank</span>
+          <strong id="rankText">-</strong>
+        </div>
+        <div>
+          <span class="label">Round</span>
+          <strong id="roundText">1</strong>
+        </div>
+        <div>
+          <span class="label">Next Tick</span>
+          <strong id="tickText">1.0s</strong>
+        </div>
+      </section>
+
+      <section class="game-layout">
+        <div class="stage-wrap">
+          <canvas id="gameCanvas" width="960" height="620" aria-label="meeting room arena"></canvas>
+          <div id="resultBanner" class="result-banner hidden"></div>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-section">
+            <h2>Action</h2>
+            <div class="segmented" role="group" aria-label="action">
+              <button class="action-button active" data-action="push" type="button">Push</button>
+              <button class="action-button" data-action="brace" type="button">Brace</button>
+              <button class="action-button" data-action="heavy" type="button">Heavy</button>
+              <button class="action-button" data-action="dodge" type="button">Dodge</button>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <h2>Direction</h2>
+            <div class="dpad" aria-label="direction pad">
+              <button class="dir-button" data-dir="up" type="button">↑</button>
+              <button class="dir-button" data-dir="left" type="button">←</button>
+              <button class="dir-button active" data-dir="right" type="button">→</button>
+              <button class="dir-button" data-dir="down" type="button">↓</button>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <h2>Pressure</h2>
+            <input id="powerSlider" class="slider" type="range" min="0.25" max="1" step="0.05" value="0.7">
+            <div class="meter-row">
+              <span>Weak</span>
+              <strong id="powerText">70%</strong>
+              <span>Strong</span>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <h2>Status</h2>
+            <p id="statusText" class="status-text">右へ押し込み中。1秒ごとに全員の入力が集計されます。</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <dialog id="rulesDialog" class="rules-dialog">
+      <div class="rules-head">
+        <h2>ゲームルール</h2>
+        <button id="closeRulesButton" class="icon-button" type="button" aria-label="close">×</button>
+      </div>
+      <div class="rules-body">
+        <p>50人が会議室で押し合い、最後まで安全エリア内に残った人が勝ちです。</p>
+        <ul>
+          <li>1秒ごとに全員の行動がまとめて処理されます。</li>
+          <li>Pushは指定方向に押します。Heavyは強く押せますが次の硬直が重めです。</li>
+          <li>Braceは押されにくくなります。Dodgeは横にずれて混雑を避けます。</li>
+          <li>赤い安全エリアから出ると脱落します。会議室は徐々に狭くなります。</li>
+          <li>机やホワイトボードにぶつかると押し返されます。</li>
+        </ul>
+      </div>
+    </dialog>
+
+    <script src="game.js"></script>
+  </body>
+</html>
